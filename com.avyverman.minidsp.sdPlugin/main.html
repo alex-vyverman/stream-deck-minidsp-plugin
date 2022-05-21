@@ -61,13 +61,14 @@
                 }).then(result => $SD.api.showOk(jsonObj.context),
                     title = {
                         "event": "setTitle",
-                        "context": "blub",
+                        "context": jsonObj.context,
                         "payload": {
                             "title": "blob",
                             "target": "both"
                         }
                     },
-                $SD.api.setTitle(title),
+                    label = "preset " + presetNr + " loaded",
+                $SD.api.setTitle(jsonObj.context, label), console.log(jsonObj.context),
                     error => $SD.api.showAlert(jsonObj.context));
             }
         };

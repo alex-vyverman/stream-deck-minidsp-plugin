@@ -43,6 +43,7 @@
                 }
                 presetNr = jsonObj.payload.settings.preset
                 presetNr = parseInt(presetNr) //because string
+                presetNrplusOne = presetNr + parseInt(1)
                 body = { master_status: { "preset": presetNr } }
                 /* fetch(jsonObj.payload.settings.minidspurl, {
                     "method": jsonObj.payload.settings.webhookmethod,
@@ -67,11 +68,34 @@
                             "target": "both"
                         }
                     },
-                    label = "preset " + presetNr + " loaded",
-                $SD.api.setTitle(jsonObj.context, label), console.log(jsonObj.context),
+                    poll_status(jsonObj.context),
+                    label = "preset " + presetNrplusOne,
+                    $SD.api.setTitle(jsonObj.context, label),
                     error => $SD.api.showAlert(jsonObj.context));
             }
         };
+        async function poll_status(context) {
+            const contextUID = context
+            console.log(contextUID)
+            async function startPoll(contextUID) {
+                let status;
+                try {
+                    const res = await fetch("http://127.0.0.1:5380/devices/0");
+                    status = await res.json();
+                } catch (e) {
+                    console.error("polling error", e);
+                }
+                console.log(status.master.preset)
+                label = status.master.preset
+                $SD.api.setTitle(contextUID, label)
+    
+
+                timeout = setTimeout(startPoll, 5000);
+            }
+
+            // just notice this is the last line of the doc
+            startPoll(contextUID)
+        }
     </script>
 </body>
 

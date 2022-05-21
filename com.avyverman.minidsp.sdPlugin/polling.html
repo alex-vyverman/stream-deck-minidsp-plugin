@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+</html>
+<script>
+async function poll_status() {
+    async function startPoll() {
+  let status;
+  try {
+    const res = await fetch("http://127.0.0.1:5380/devices/0");
+    status = await res.json();
+  } catch (e) {
+    console.error("polling error", e);
+  }
+  console.log(status.master.preset)
+  console.log(typeof status.master.preset)
+  setTimeout(startPoll, 5000);
+}
+
+// just notice this is the last line of the doc
+startPoll()
+}
+</script>

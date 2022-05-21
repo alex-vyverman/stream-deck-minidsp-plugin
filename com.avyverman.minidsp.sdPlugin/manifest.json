@@ -5,7 +5,7 @@
             "Name": "miniDSP",
             "States": [
                 {
-                    "Image": "resources/soundBeats72.png",
+                    "Image": "resources/soundBeats72",
                     "TitleAlignment": "bottom",
                     "FontSize": "10"
                 }

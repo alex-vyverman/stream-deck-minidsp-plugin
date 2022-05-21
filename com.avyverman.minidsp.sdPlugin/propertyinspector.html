@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Stream Deck Webhooks</title>
+    <link rel="stylesheet" href="sdpi.css">
+    <script src="common.js"></script>
+</head>
+
+<body>
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">minidspd URL</div>
+            <input class="inspector sdpi-item-value" id="minidspurl" value="">
+        </div>
+        <div class="sdpi-item" id="select_single">
+            <div class="sdpi-item-label">Preset</div>
+            <select class="sdpi-item-value select inspector" id="preset">
+                <option value="0">1</option>
+                <option value="1">2</option>
+                <option value="2">3</option>
+                <option value="3">4</option>
+            </select>
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Detect miniDSP</div>
+            <button class="sdpi-item-value" id="detect" onclick="detect()">Detect</button>
+        </div>
+        <div type="textarea" class="sdpi-item" id="productName1">
+            <div class="sdpi-item-label">Device</div>
+            <span class="sdpi-item-value textarea">
+                <textarea class="inspector" type="textarea"
+                    id="productName2">Press "detect" to detect your device</textarea>
+            </span>
+        </div>
+        <!-- <div class="sdpi-item" id="tableClass">
+            <div class="sdpi-item-label">Table (single-select)</div>
+            <table class="sdpi-item-value single-select" width="100%" id="table1">
+                <caption>Table with single selection</caption>
+                <tr id="tableRow1">
+                    <td>Four</td>
+                    <td>Five</td>
+                    <td>Six</td>
+                </tr>
+            </table>
+        </div>         -->
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Are you done?</div>
+            <button class="sdpi-item-value" id="save" onclick="save()">Save</button>
+        </div>
+    </div>
+    <script>
+        if ($SD) {
+            $SD.on("connected", function (jsonObj) {
+                console.log(`[connected] ${JSON.stringify(jsonObj)}`);
+                if (jsonObj.hasOwnProperty('actionInfo')) {
+                    settings = Utils.getProp(jsonObj, 'actionInfo.payload.settings', {});
+                    document.getElementById("minidspurl").value = settings.minidspurl || "127.0.0.1";
+                    document.getElementById("webhookmethod").value = settings.webhookmethod || "GET";
+                    document.getElementById("webhookpayload").value = settings.webhookpayload || "{}";
+                    // [].forEach.call(document.querySelectorAll(".inspector"), element => {
+                    //     element.addEventListener("change", () => {
+                    //         var payload = {};
+                    //         [].forEach.call(document.querySelectorAll(".inspector"), element => {
+                    //             payload[element.id] = element.value;
+                    //         });
+                    //         $SD.api.sendToPlugin($SD.uuid, $SD.actionInfo["action"], payload);
+                    //     });
+                    // });
+                }
+            });
+        };
+        const save = function () {
+            if ($SD) {
+                var payload = {};
+                [].forEach.call(document.querySelectorAll(".inspector"), element => {
+                    payload[element.id] = element.value;
+                });
+                $SD.api.sendToPlugin($SD.uuid, $SD.actionInfo["action"], payload);
+            }
+        }
+        const detect = async function () {
+            fetch('http://127.0.0.1:5380/devices', {
+                method: "GET",
+                mode: 'cors',
+                headers: {
+                    'Access-Control-Allow-Origin': 'http://127.0.0.1:5500'
+                }
+            }
+            )
+                //.then(response => response.json())
+                .then(res => res.json()) // the .json() method parses the JSON response into a JS object literal
+                .then(data => (console.log(data), 
+                    nrDevs = data.length,
+                    data.forEach(product => console.log("blub")),
+                    productName = data[0].product_name, console.log(productName),
+                    document.getElementById("productName2").innerHTML = "Found: " + nrDevs + " devices: " + "\n" + productName,
+                    document.getElementById("tableRow1").innerHTML = productName,
+                    table = document.getElementById("table1"),
+                    row = table.insertRow(1)
+                    )
+                );
+
+
+        }
+        const test = async function () {
+            fetch('http://127.0.0.1:5380/devices/0/config', {
+                            "method": 'POST',
+                            "headers": {
+                                'Accept': 'application/json',
+                                "content-type": "application/json"
+                            },
+                            "body": JSON.stringify({master_status:{"preset": 1}})
+                        }).then(result => console.log(result));
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>com.avyverman.minidsp</title>
+    <meta charset="utf-8" />
+</head>
+
+<body>
+    <script src="common.js"></script>
+    <script>
+        $SD.on('connected', (jsonObj) => connected(jsonObj));
+
+        function connected(jsonObj) {
+            console.log(`[connected] ${JSON.stringify(jsonObj)}`);
+            $SD.on('com.avyverman.minidsp.action.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
+            $SD.on('com.avyverman.minidsp.action.keyUp', (jsonObj) => action.onKeyUp(jsonObj));
+            $SD.on('com.avyverman.minidsp.action.didReceiveSettings', (jsonObj) => action.onDidReceiveSettings(jsonObj));
+            $SD.on('com.avyverman.minidsp.action.propertyInspectorDidAppear', (jsonObj) => { });
+            $SD.on('com.avyverman.minidsp.action.propertyInspectorDidDisappear', (jsonObj) => { });
+            $SD.on('com.avyverman.minidsp.action.sendToPlugin', (jsonObj) => action.onSendToPlugin(jsonObj));
+        };
+
+        const action = {
+            onDidReceiveSettings: (jsonObj) => {
+                console.log(`[onDidReceiveMessage] ${JSON.stringify(jsonObj)}`);
+            },
+            onWillAppear: (jsonObj) => {
+                console.log(`[onWillAppear] ${JSON.stringify(jsonObj)}`);
+                $SD.api.sendToPropertyInspector(jsonObj.context, Utils.getProp(jsonObj, "payload.settings", {}), jsonObj.action);
+            },
+            onSendToPlugin: (jsonObj) => {
+                console.log(`[onSendToPlugin] ${JSON.stringify(jsonObj)}`);
+                if (jsonObj.payload) {
+                    $SD.api.setSettings(jsonObj.context, jsonObj.payload);
+                }
+            },
+            onKeyUp: (jsonObj) => {
+                console.log(`[onKeyUp] ${JSON.stringify(jsonObj)}`);
+                if (!jsonObj.payload.settings || !jsonObj.payload.settings.minidspurl) {
+                    $SD.api.showAlert(jsonObj.context);
+                    return;
+                }
+                presetNr = jsonObj.payload.settings.preset
+                presetNr = parseInt(presetNr) //because string
+                body = { master_status: { "preset": presetNr } }
+                /* fetch(jsonObj.payload.settings.minidspurl, {
+                    "method": jsonObj.payload.settings.webhookmethod,
+                    "headers": {
+                        "content-type": "application/json"
+                    },
+                    "body": jsonObj.payload.settings.webhookpayload
+                }).then(result => $SD.api.showOk(jsonObj.context), error => $SD.api.showAlert(jsonObj.context)); */
+                fetch("http://" + jsonObj.payload.settings.minidspurl + ":5380/devices/0/config", {
+                    "method": 'POST',
+                    "headers": {
+                        'Accept': 'application/json',
+                        "content-type": "application/json"
+                    },
+                    "body": JSON.stringify(body)
+                }).then(result => $SD.api.showOk(jsonObj.context),
+                    title = {
+                        "event": "setTitle",
+                        "context": "blub",
+                        "payload": {
+                            "title": "blob",
+                            "target": "both"
+                        }
+                    },
+                $SD.api.setTitle(title),
+                    error => $SD.api.showAlert(jsonObj.context));
+            }
+        };
+    </script>
+</body>
+
+</html>

@@ -53,13 +53,6 @@
                 presetNr = parseInt(presetNr) //because string
                 presetNrplusOne = presetNr + parseInt(1)
                 body = { master_status: { "preset": presetNr } }
-                /* fetch(jsonObj.payload.settings.minidspurl, {
-                    "method": jsonObj.payload.settings.webhookmethod,
-                    "headers": {
-                        "content-type": "application/json"
-                    },
-                    "body": jsonObj.payload.settings.webhookpayload
-                }).then(result => $SD.api.showOk(jsonObj.context), error => $SD.api.showAlert(jsonObj.context)); */
                 fetch("http://" + jsonObj.payload.settings.minidspurl + ":5380/devices/0/config", {
                     "method": 'POST',
                     "headers": {
@@ -68,17 +61,11 @@
                     },
                     "body": JSON.stringify(body)
                 }).then(result => $SD.api.showOk(jsonObj.context),
-                    label = "preset " + presetNrplusOne,
-                    //$SD.api.setTitle(jsonObj.context, label),
+                    //label = "preset " + presetNrplusOne,
                     error => $SD.api.showAlert(jsonObj.context));
             }
         };
         async function poll_status() {
-            // contextUID = jsonObj.context
-            // console.log(`[context UID] ${contextUID}`)
-            // presetNr = jsonObj.payload.settings.preset
-            // presetNr = parseInt(presetNr) //because string
-            // console.log(`[presetNr] ${presetNr}`)
             async function startPoll() {
                 console.log(objectUUID_array);
                 let status;
@@ -89,7 +76,6 @@
                     console.error("polling error", e);
                 }
                 console.log(status.master.preset)
-                //objectUUID_array.forEach(element => element.payload.settings.preset == status.master.preset && $SD.api.setTitle(element.context, 'deze') );
                 objectUUID_array.forEach(setlabel)
                 function setlabel(element) {
                     if (element.payload.settings.preset == status.master.preset) {
@@ -98,14 +84,11 @@
                         $SD.api.setTitle(element.context, 'niet deze')
                     }
                 }
-                //label = status.master.preset
-                //$SD.api.setTitle(contextUID, label)
 
 
                 timeout = setTimeout(startPoll, 5000);
             }
 
-            // just notice this is the last line of the doc
             startPoll()
         }
     </script>

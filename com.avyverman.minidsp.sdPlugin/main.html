@@ -9,6 +9,8 @@
 <body>
     <script src="common.js"></script>
     <script>
+        let objectUUID_array = [];
+        poll_status();
         $SD.on('connected', (jsonObj) => connected(jsonObj));
 
         function connected(jsonObj) {
@@ -28,6 +30,12 @@
             onWillAppear: (jsonObj) => {
                 console.log(`[onWillAppear] ${JSON.stringify(jsonObj)}`);
                 $SD.api.sendToPropertyInspector(jsonObj.context, Utils.getProp(jsonObj, "payload.settings", {}), jsonObj.action);
+                const index = objectUUID_array.findIndex(object => object.context === jsonObj.context);
+
+                if (index === -1) {
+                    console.log('UUID not found, pushing...')
+                    objectUUID_array.push(jsonObj);
+                }
             },
             onSendToPlugin: (jsonObj) => {
                 console.log(`[onSendToPlugin] ${JSON.stringify(jsonObj)}`);
@@ -60,24 +68,19 @@
                     },
                     "body": JSON.stringify(body)
                 }).then(result => $SD.api.showOk(jsonObj.context),
-                    title = {
-                        "event": "setTitle",
-                        "context": jsonObj.context,
-                        "payload": {
-                            "title": "blob",
-                            "target": "both"
-                        }
-                    },
-                    poll_status(jsonObj.context),
                     label = "preset " + presetNrplusOne,
-                    $SD.api.setTitle(jsonObj.context, label),
+                    //$SD.api.setTitle(jsonObj.context, label),
                     error => $SD.api.showAlert(jsonObj.context));
             }
         };
-        async function poll_status(context) {
-            const contextUID = context
-            console.log(contextUID)
-            async function startPoll(contextUID) {
+        async function poll_status() {
+            // contextUID = jsonObj.context
+            // console.log(`[context UID] ${contextUID}`)
+            // presetNr = jsonObj.payload.settings.preset
+            // presetNr = parseInt(presetNr) //because string
+            // console.log(`[presetNr] ${presetNr}`)
+            async function startPoll() {
+                console.log(objectUUID_array);
                 let status;
                 try {
                     const res = await fetch("http://127.0.0.1:5380/devices/0");
@@ -86,15 +89,24 @@
                     console.error("polling error", e);
                 }
                 console.log(status.master.preset)
-                label = status.master.preset
-                $SD.api.setTitle(contextUID, label)
-    
+                //objectUUID_array.forEach(element => element.payload.settings.preset == status.master.preset && $SD.api.setTitle(element.context, 'deze') );
+                objectUUID_array.forEach(setlabel)
+                function setlabel(element) {
+                    if (element.payload.settings.preset == status.master.preset) {
+                        $SD.api.setTitle(element.context, 'deze')
+                    } else {
+                        $SD.api.setTitle(element.context, 'niet deze')
+                    }
+                }
+                //label = status.master.preset
+                //$SD.api.setTitle(contextUID, label)
+
 
                 timeout = setTimeout(startPoll, 5000);
             }
 
             // just notice this is the last line of the doc
-            startPoll(contextUID)
+            startPoll()
         }
     </script>
 </body>

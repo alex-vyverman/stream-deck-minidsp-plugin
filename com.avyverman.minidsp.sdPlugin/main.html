@@ -67,7 +67,6 @@
         };
         async function poll_status() {
             async function startPoll() {
-                console.log(objectUUID_array);
                 let status;
                 try {
                     const res = await fetch("http://127.0.0.1:5380/devices/0");
@@ -79,14 +78,14 @@
                 objectUUID_array.forEach(setlabel)
                 function setlabel(element) {
                     if (element.payload.settings.preset == status.master.preset) {
-                        $SD.api.setTitle(element.context, 'deze')
+                        $SD.api.setTitle(element.context, `P: ${parseInt(element.payload.settings.preset) + 1} ON` )
                     } else {
-                        $SD.api.setTitle(element.context, 'niet deze')
+                        $SD.api.setTitle(element.context, `P: ${parseInt(element.payload.settings.preset) + 1} OFF`)
                     }
                 }
 
 
-                timeout = setTimeout(startPoll, 5000);
+                timeout = setTimeout(startPoll, 1000);
             }
 
             startPoll()
